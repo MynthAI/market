@@ -1,15 +1,15 @@
 {
-  "name": "@mynthai/nova",
-  "version": "0.0.4",
+  "name": "@mynthai/market",
+  "version": "0.0.1",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
-  "description": "CLI for easy stablecoins",
+  "description": "Market CLI",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/MynthAI/nova.git"
+    "url": "https://github.com/MynthAI/market.git"
   },
   "packageManager": "pnpm@10.30.1",
   "engines": {
@@ -17,11 +17,9 @@
   },
   "type": "module",
   "bin": {
-    "nova": "bin/nova.mjs"
+    "market": "bin/market.mjs"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "prebuild": "pnpm del -rf dist",
     "build": "pnpm tsc",

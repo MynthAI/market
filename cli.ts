@@ -8,8 +8,8 @@ let helpText = "";
 const getHelp = () => helpText;
 
 program
-  .name("nova")
-  .description("Nova CLI")
+  .name("market")
+  .description("Market CLI")
   .option("-j, --json", "Output results as JSON")
   .option("-t, --toon", "Output results as TOON")
   .exitOverride()
