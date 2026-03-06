@@ -1,30 +1,11 @@
 import { type } from "arktype";
-import { randomBytes } from "crypto";
-import { Decimal } from "decimal.js";
 import ky, { type KyInstance } from "ky";
-import { Err, Ok, type Result } from "ts-handling";
+import { Err, Ok } from "ts-handling";
 import { getNetwork } from "./config.js";
-import {
-  AccountsEndpoints,
-  AddressEndpoints,
-  AuthEndpoints,
-  type Network,
-} from "./endpoints.js";
-import {
-  AddressResponse,
-  BalanceResponse,
-  GenerateResponse,
-  LinkCreatedResponse,
-  RateLimited,
-  TokenCreatedResponse,
-  ValidationErrorResponse,
-} from "./responses/index.js";
+import { AuthEndpoints, type Network } from "./endpoints.js";
+import { RateLimited, ValidationErrorResponse } from "./responses/index.js";
 
-const Address = type(/^[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{38}$/i).pipe((v) =>
-  v.toLowerCase(),
-);
-
-class NovaApiClient {
+class MarketApiClient {
   private readonly http: KyInstance;
 
   constructor(private readonly network: Network) {
@@ -32,23 +13,6 @@ class NovaApiClient {
       throwHttpErrors: false,
       retry: { retryOnTimeout: true },
     });
-  }
-
-  async getAddress(addressOrToken: string) {
-    const address = Address(addressOrToken);
-    if (address instanceof type.errors)
-      return this.getAddressViaToken(addressOrToken);
-    return this.getAddressViaAddress(address);
-  }
-
-  async getBalance(address: string) {
-    const endpoint = AccountsEndpoints[this.network];
-    const response = await this.http
-      .get(`${endpoint}/balance`, { searchParams: { address } })
-      .json();
-    const validatedResponse = BalanceResponse(response);
-    if (validatedResponse instanceof type.errors) return parseError(response);
-    return Ok(validatedResponse);
   }
 
   async login(email: string, publicKey: string) {
@@ -69,146 +33,6 @@ class NovaApiClient {
     if (response.status !== 201) return parseError(await response.json());
     return Ok();
   }
-
-  async send(
-    authToken: string,
-    amount: Decimal,
-    to: string,
-  ): Promise<Result<string, string>>;
-  async send(
-    nonce: string,
-    signature: string,
-    amount: Decimal,
-    to: string,
-  ): Promise<Result<string, string>>;
-  async send(
-    ...args: [string, Decimal, string] | [string, string, Decimal, string]
-  ) {
-    if (args.length === 3) {
-      const [authToken, amount, to] = args;
-      return this.sendViaAuth(authToken, amount, to);
-    }
-
-    const [nonce, signature, amount, to] = args;
-    return this.sendViaKey(nonce, signature, amount, to);
-  }
-
-  async resolve(email: string) {
-    const endpoint = AccountsEndpoints[this.network];
-    const response = await this.http
-      .get(`${endpoint}/resolve`, { searchParams: { email } })
-      .json();
-    const validatedResponse = AddressResponse(response);
-    if (validatedResponse instanceof type.errors) return parseError(response);
-    return Ok(validatedResponse);
-  }
-
-  async createLink() {
-    const endpoint = AccountsEndpoints[this.network];
-    const response = await this.http.post(`${endpoint}/create-link`).json();
-    const linkResponse = LinkCreatedResponse(response);
-    if (linkResponse instanceof type.errors) return parseError(response);
-    const domain = new URL(endpoint).origin;
-    const url = `${domain}/c/${linkResponse.contents.token}`;
-    return Ok({
-      address: linkResponse.contents.address,
-      url,
-    });
-  }
-
-  async createToken(email: string, nonce: string, signature: string) {
-    const endpoint = AuthEndpoints[this.network];
-    const response = await this.http
-      .post(`${endpoint}/create-token`, {
-        json: { email, nonce: nonce, signature },
-      })
-      .json();
-    const validatedResponse = TokenCreatedResponse(response);
-    if (validatedResponse instanceof type.errors) return parseError(response);
-    return Ok(validatedResponse);
-  }
-
-  async generate(
-    target: { address: string; blockchain: string; token: string },
-    amount: Decimal,
-  ) {
-    const endpoint = AddressEndpoints[this.network];
-    const response = await this.http
-      .post(`${endpoint}/generate`, {
-        json: {
-          source: {
-            blockchain: "mynth",
-            token: "usd",
-          },
-          target,
-          amount: amount.toString(),
-          providerId: "novaswap",
-        },
-      })
-      .json();
-    const validatedResponse = GenerateResponse(response);
-
-    if (validatedResponse instanceof type.errors) return parseError(response);
-    return Ok(validatedResponse);
-  }
-
-  private async sendViaAuth(authToken: string, amount: Decimal, to: string) {
-    const endpoint = AccountsEndpoints[this.network];
-    const nonce = randomBytes(32).toString("hex");
-    const response = await this.http.post(`${endpoint}/transfer`, {
-      headers: { Authorization: "Bearer " + authToken },
-      json: {
-        amount: amount.toString(),
-        nonce,
-        to,
-      },
-    });
-    if (response.status !== 200) return parseError(await response.json());
-    return Ok(nonce);
-  }
-
-  private async sendViaKey(
-    nonce: string,
-    signature: string,
-    amount: Decimal,
-    to: string,
-  ) {
-    const endpoint = AccountsEndpoints[this.network];
-    const response = await this.http.post(`${endpoint}/transfer`, {
-      json: {
-        amount: amount.toString(),
-        nonce,
-        signature,
-        to,
-      },
-    });
-    if (response.status !== 200) return parseError(response.json());
-    return Ok(nonce);
-  }
-
-  private async getAddressViaAddress(address: string) {
-    const endpoint = AccountsEndpoints[this.network];
-    const response = await this.http
-      .get(`${endpoint}/address`, {
-        searchParams: { address },
-      })
-      .json();
-    const validatedResponse = AddressResponse(response);
-    if (validatedResponse instanceof type.errors) return parseError(response);
-    return Ok(validatedResponse);
-  }
-
-  private async getAddressViaToken(token: string) {
-    const endpoint = AccountsEndpoints[this.network];
-    const response = await this.http
-      .get(`${endpoint}/address`, {
-        headers: { Authorization: "Bearer " + token },
-      })
-      .json();
-    const validatedResponse = AddressResponse(response);
-    if (validatedResponse instanceof type.errors) return parseError(response);
-    return Ok(validatedResponse);
-  }
 }
 
 const parseError = (data: unknown) => {
@@ -227,6 +51,6 @@ const parseError = (data: unknown) => {
   );
 };
 
-const api = new NovaApiClient(getNetwork());
+const api = new MarketApiClient(getNetwork());
 
 export { api };

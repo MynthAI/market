@@ -1,5 +1,5 @@
 import Conf from "conf";
-import { createHash, randomBytes } from "crypto";
+import { createHash } from "crypto";
 import { existsSync, statSync } from "fs";
 import { getMachineIdSync } from "native-machine-id";
 import { isAbsolute, resolve } from "path";
@@ -35,13 +35,13 @@ const getEncryptionKey = () =>
 const getLaunchCwd = () => process.env.INIT_CWD?.trim() || process.cwd();
 
 const getConfigCwd = (): string | undefined => {
-  const value = process.env.NOVA_CONFIG?.trim();
+  const value = process.env.MARKET_CONFIG?.trim();
   if (!value) return undefined;
 
   try {
     const base = getLaunchCwd();
 
-    // If NOVA_CONFIG is absolute, keep it; otherwise resolve relative to
+    // If MARKET_CONFIG is absolute, keep it; otherwise resolve relative to
     // cwd
     const fullPath = isAbsolute(value) ? value : resolve(base, value);
 
@@ -49,7 +49,7 @@ const getConfigCwd = (): string | undefined => {
       return fullPath;
   } catch {}
 
-  logExit("NOVA_CONFIG is not a valid directory path");
+  logExit("MARKET_CONFIG is not a valid directory path");
   process.exit(1);
 };
 
@@ -71,16 +71,5 @@ const config = (() => {
 
 const getNetwork = () => config.get("network") ?? "testnet";
 
-const getPrivateKey = () => {
-  const network = getNetwork();
-  const email = config.get(`${network}Email`);
-  const privateKey = config.get("privateKey");
-
-  if (!email && !privateKey)
-    config.set("privateKey", randomBytes(32).toString("hex"));
-
-  return config.get("privateKey");
-};
-
 export default config;
-export { getNetwork, getPrivateKey };
+export { getNetwork };
