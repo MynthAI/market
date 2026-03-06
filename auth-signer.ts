@@ -1,5 +1,5 @@
 import { type } from "arktype";
-import { generateKeyPair, type KeyObject, sign } from "crypto";
+import { generateKeyPair } from "crypto";
 import { promisify } from "util";
 
 const generateKeyPairAsync = promisify(generateKeyPair);
@@ -13,9 +13,4 @@ const generateKeys = async () => {
   return { public: publicKeyBytes.toString("hex"), private: privateKey };
 };
 
-const signPayload = (payload: Buffer, privateKey: KeyObject) => {
-  const signature = sign(null, payload, privateKey);
-  return signature.toString("base64");
-};
-
-export { generateKeys, signPayload };
+export { generateKeys };
