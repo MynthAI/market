@@ -1,35 +1,8 @@
-# nova
+# market
 
-**nova** is a Node.js CLI tool for easily interacting with stablecoins.
-It provides simple commands to check balance, send, receive, withdraw,
-and share funds via claim links.
-
-## ✨ Features
-
-- 🪙 Receive stablecoins
-- 💰 Check balance
-- 📤 Send stablecoins to anyone for free
-- 🔗 Generate shareable claim links
-- 📥 Withdraw stablecoins to external blockchains
-- 🔐 Multiple authentication methods
-
-## 🤖 AI Agent Integration
-
-Nova can be used directly by AI agents via **Vercel Skills**.
-
-### Install with Vercel Skills CLI
-
-``` bash
-npx skills add MynthAI/nova
-```
-
-Once installed, the skill is automatically available to your AI agent.
-The agent will invoke Nova commands when relevant tasks are detected.
-
-### Example Agent Prompts
-
-- `Sign-in to my wallet with me@email.com`
-- `Create a $10 claim link`
+**market** is a Node.js CLI tool for interacting with Mynth markets.
+It provides a simple command-line interface for authentication and
+account management.
 
 ## 🚀 Quick Start
 
@@ -38,32 +11,30 @@ Get up and running in under a minute:
 ### Option 1: Install from npm
 
 ``` bash
-npm install @mynthai/nova
+npm install @mynthai/market
 ```
 
 Or run directly without installing:
 
 ``` bash
-npx @mynthai/nova --help
+npx @mynthai/market --help
 ```
 
 ### Option 2: Build from source
 
 ``` bash
-git clone https://github.com/MynthAI/nova.git
-cd nova
+git clone https://github.com/MynthAI/market.git
+cd market
 pnpm install
 pnpm build
 pnpm link
 ```
 
-Authenticate and start using Nova:
+Authenticate and start using Market:
 
 ``` bash
-nova login request you@example.com
-nova login confirm 123456
-nova balance
-nova send 10 friend@example.com
+market login request you@example.com
+market login confirm 123456
 ```
 
 Use `-h` or `--help` with any command to see detailed usage information.
@@ -78,14 +49,14 @@ Use `-h` or `--help` with any command to see detailed usage information.
 ### Install from npm
 
 ``` bash
-npm install @mynthai/nova
+npm install @mynthai/market
 ```
 
-You can also run Nova directly with `npx` without installing it
+You can also run Market directly with `npx` without installing it
 globally:
 
 ``` bash
-npx @mynthai/nova --help
+npx @mynthai/market --help
 ```
 
 ### Install from source
@@ -93,105 +64,31 @@ npx @mynthai/nova --help
 Clone the repository and install dependencies:
 
 ``` bash
-cd nova
+cd market
 pnpm install
 pnpm build
 pnpm link
 ```
 
-After linking, the `nova` command will be available globally.
-
-## 🔐 Authentication
-
-Nova supports **two authentication methods**. You can choose the one
-that best fits your workflow and security preferences.
-
-### 1️⃣ Email-based Authentication (Recommended)
-
-Authenticate using your email address. Nova creates and manages a wallet
-for your account.
-
-#### How it works
-
-- You start login by requesting an authentication code to your email
-- You confirm the code to complete login
-- Nova securely manages your wallet
-- You generate an authentication token for CLI access
-
-#### Commands
-
-``` bash
-nova login request <email>
-nova login confirm <code>
-nova token
-```
-
-#### Best for
-
-- New users
-- Fast setup
-- Users who don’t want to manage private keys
-
-#### Pros
-
-- Simple and beginner-friendly
-- No manual key management
-- Account recovery via email
-
-#### Cons
-
-- Requires trust in Nova for key management
-- Email access is required
-
-### 2️⃣ Private Key Authentication (Self-custody)
-
-Authenticate by importing an existing wallet using a **private key** or
-**mnemonic seed phrase**. All signing happens locally.
-
-#### Commands
-
-``` bash
-nova import key
-nova import phrase
-```
-
-#### Best for
-
-- Advanced users
-- Full self-custody
-- Using an existing wallet
-
-#### Pros
-
-- Full control over your funds
-- No email required
-- Keys never leave your machine
-
-#### Cons
-
-- You are responsible for key security
-- No recovery if keys are lost
-
-⚠️ **Warning:** If you lose your private key or seed phrase, your funds
-cannot be recovered.
-
-### 🔄 Switching Authentication Methods
-
-- Email-based accounts can export their wallet and move to self-custody
-- Private-key accounts cannot be converted to email-based authentication
+After linking, the `market` command will be available globally.
 
 ## 🚀 Usage
 
-After building, the `nova` command will be available. The `nova` CLI
-provides commands to manage your account, wallet, and transactions.
+After building, the `market` command will be available. The `market` CLI
+provides commands to authenticate and manage your account.
 
 ### General Syntax
 
 ``` bash
-nova [options] [command]
+market [options] [command]
 ```
 
 Use `-h` or `--help` with any command to see detailed help.
+
+### Global Options
+
+- `-j, --json` — Output results as JSON
+- `-t, --toon` — Output results as TOON (a compact binary-friendly format used by AI agents)
 
 ### Commands
 
@@ -200,139 +97,44 @@ Use `-h` or `--help` with any command to see detailed help.
 Login using your email address (non-interactive 2-step flow).
 
 ``` bash
-nova login request <email>
-nova login confirm <code>
+market login request <email>
+market login confirm <code>
 ```
 
-**Commands**
+**Subcommands**
 
 - `request <email>` — Send an authentication code to the email address
 - `confirm <code>` — Confirm the authentication code and complete login
 
-#### `token`
+**Options for `request`**
 
-Create an authentication token (email-based accounts only).
+- `-f, --force` — Overwrite existing credentials if they exist
 
-``` bash
-nova token
-```
-
-#### `address`
-
-Display your account address.
+**Example**
 
 ``` bash
-nova address
+market login request you@example.com
+market login confirm ABC123
 ```
 
-#### `balance`
+## ⚙️ Configuration
 
-Show your current account balance.
+### Network
+
+Market supports three networks: `testnet` (default), `mainnet`, and
+`local`.
+
+The active network is stored in configuration and defaults to `testnet`.
+
+### Config Directory
+
+By default, Market stores its configuration in a platform-appropriate
+location. You can override this by setting the `MARKET_CONFIG`
+environment variable to an existing directory path:
 
 ``` bash
-nova balance
+MARKET_CONFIG=/path/to/config market login request you@example.com
 ```
-
-#### `send`
-
-Send funds to another Nova account or generate a claim link.
-
-``` bash
-nova send <amount> [destination]
-```
-
-**Arguments**
-
-- `amount` — Amount to send
-- `destination` *(optional)* — Recipient email or Nova account address
-
-**Options**
-
-- `-d, --dry-run` — Preview the transaction without submitting it
-
-**Behavior**
-
-- If `destination` **is provided**, funds are sent directly to that
-  account
-- If `destination` **is omitted**, Nova generates a **claim link**
-
-``` bash
-nova send 25
-```
-
-Example output:
-
-``` text
-Sent 25 to https://www.mynth.ai/c/MUhW0KzcB1BVxNRicamrRw
-```
-
-Anyone with the link can claim the funds. Once claimed, the link becomes
-invalid.
-
-#### Claim links
-
-- Claim links represent a one-time transferable balance
-- The first person to claim the link receives the funds
-- Links can be shared via chat, email, or any messaging platform
-- Unclaimed funds remain locked until claimed
-
-⚠️ **Warning:** Anyone with access to the claim link can claim the
-funds. Share links carefully.
-
-#### `withdraw`
-
-Withdraw funds to an external blockchain as a stablecoin.
-
-``` bash
-nova withdraw <amount> <stablecoin> <address> <blockchain>
-```
-
-**Arguments**
-
-- `amount` — Amount to withdraw
-- `stablecoin` — Stablecoin to withdraw as
-- `address` — Destination blockchain address
-- `blockchain` — Target blockchain (required if it cannot be inferred
-  from the address)
-
-**Options**
-
-- `-d, --dry-run` — Preview the transaction without submitting it
-
-#### `config`
-
-Manage Nova configuration values.
-
-``` bash
-nova config get <key>
-nova config set <key> <value>
-```
-
-#### `import`
-
-Import an existing wallet.
-
-``` bash
-nova import key
-nova import phrase
-```
-
-- `key` — Import wallet using a private key
-- `phrase` — Import wallet using a mnemonic seed phrase
-
-#### `export`
-
-Export sensitive wallet data.
-
-``` bash
-nova export key
-nova export phrase
-```
-
-- `key` — Export the wallet’s private key
-- `phrase` — Export the wallet’s mnemonic seed phrase
-
-⚠️ **Warning:** Exported data is highly sensitive. Store it securely.
 
 ## 🛠 Development
 
@@ -352,6 +154,12 @@ Build the project:
 
 ``` bash
 pnpm build
+```
+
+Run tests:
+
+``` bash
+pnpm test
 ```
 
 ## 📄 License
